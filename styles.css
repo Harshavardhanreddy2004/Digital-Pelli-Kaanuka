@@ -1,0 +1,163 @@
+/*
+ * Pelli Kaanuka Voice Management System - Custom Stylesheet
+ * Integrates traditional Telugu wedding aesthetic (Crimson, Gold, Cream) with modern Glassmorphism.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Telugu:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-primary: 'Outfit', 'Noto Sans Telugu', sans-serif;
+  
+  /* Traditional Wedding Colors */
+  --color-maroon: 345, 100%, 20%;      /* #660011 */
+  --color-maroon-light: 345, 80%, 28%;/* #801026 */
+  --color-gold: 43, 67%, 50%;          /* #D4AF37 */
+  --color-gold-glow: 43, 85%, 60%;     /* #E5C158 */
+  --color-cream: 38, 50%, 96%;         /* #FAF7F0 */
+  --color-cream-card: 38, 40%, 98%;    /* #FCFAF5 */
+  
+  /* Dark Mode wedding palette overrides */
+  --color-dark-bg: 220, 20%, 8%;       /* #0a0d14 */
+  --color-dark-card: 220, 20%, 12%;   /* #121620 */
+}
+
+/* Base Body Styles */
+body {
+  font-family: var(--font-primary);
+  background-color: hsl(var(--color-cream));
+  color: hsl(var(--color-maroon));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+body.dark {
+  background-color: hsl(var(--color-dark-bg));
+  color: #f3f4f6;
+}
+
+/* Glassmorphism Class */
+.glass-panel {
+  background: rgba(252, 250, 245, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .glass-panel {
+  background: rgba(18, 22, 32, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Mic pulse animations */
+@keyframes pulse-mic {
+  0% {
+    box-shadow: 0 0 0 0 rgba(128, 0, 17, 0.4);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 25px rgba(128, 0, 17, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(128, 0, 17, 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-mic-gold {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.5);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 25px rgba(212, 175, 55, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    transform: scale(1);
+  }
+}
+
+.recording-pulse-active {
+  animation: pulse-mic 1.5s infinite;
+}
+
+.dark .recording-pulse-active {
+  animation: pulse-mic-gold 1.5s infinite;
+}
+
+/* Visualizer bars */
+.visualizer-bar {
+  width: 4px;
+  height: 8px;
+  background-color: hsl(var(--color-maroon));
+  border-radius: 2px;
+  transition: height 0.1s ease-out;
+}
+
+.dark .visualizer-bar {
+  background-color: hsl(var(--color-gold));
+}
+
+/* Golden Borders & Accents */
+.border-gold {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.text-gold {
+  color: hsl(var(--color-gold));
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 0, 17, 0.6);
+}
+
+/* Elegant wedding mandala pattern backdrops (simulated via CSS gradients) */
+.mandala-overlay {
+  background-image: radial-gradient(circle at 100% 150%, rgba(212, 175, 55, 0.08) 24%, white 24%, white 28%, rgba(212, 175, 55, 0.08) 28%, rgba(212, 175, 55, 0.08) 36%, transparent 36%, transparent 40%, rgba(212, 175, 55, 0.04) 40%, rgba(212, 175, 55, 0.04) 46%, transparent 46%);
+  background-size: 80px 80px;
+}
+
+.dark .mandala-overlay {
+  background-image: radial-gradient(circle at 100% 150%, rgba(212, 175, 55, 0.04) 24%, transparent 24%, transparent 28%, rgba(212, 175, 55, 0.04) 28%, rgba(212, 175, 55, 0.04) 36%, transparent 36%, transparent 40%, rgba(212, 175, 55, 0.02) 40%, rgba(212, 175, 55, 0.02) 46%, transparent 46%);
+}
+
+/* CSS for Print Media (PDF Generation fallback & native Print) */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  .glass-panel {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+}

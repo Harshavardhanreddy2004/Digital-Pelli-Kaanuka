@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pelli Kaanuka Voice Management System - పెళ్ళి కానుక</title>
+  
+  <!-- Custom CSS for theme styling -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            maroon: {
+              DEFAULT: '#800011',
+              dark: '#5a000a',
+              light: '#a31525',
+            },
+            gold: {
+              DEFAULT: '#D4AF37',
+              dark: '#aa8c2c',
+              light: '#ebd173',
+            },
+            cream: {
+              DEFAULT: '#FAF7F0',
+              card: '#FCFAF5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="mandala-overlay transition-all duration-300">
+  
+  <!-- Main Wrapper -->
+  <div class="min-h-screen flex flex-col justify-between">
+    
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-gold/30 glass-panel sticky top-0 z-40 transition-colors duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+        <!-- Logo / Brand Title -->
+        <div class="flex items-center space-x-3">
+          <div class="bg-gradient-to-br from-maroon to-maroon-light dark:from-gold-dark dark:to-gold w-10 h-10 rounded-full flex items-center justify-center border border-gold/40 shadow-lg">
+            <i class="fa-solid fa-microphone-lines text-gold dark:text-maroon text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-wide text-maroon dark:text-gold flex items-center gap-2">
+              <span id="brand-title">పెళ్ళి కానుక</span> <span id="brand-badge" class="hidden sm:inline text-sm font-medium px-2 py-0.5 rounded-full border border-gold/30 text-gold-dark dark:text-gold-light bg-gold/10">వాయిస్</span>
+            </h1>
+            <p id="brand-sub" class="text-xs text-maroon-light/70 dark:text-gray-400 font-medium">Pelli Kaanuka Voice Management System</p>
+          </div>
+        </div>
+
+        <!-- System Controls -->
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <!-- Status Badge -->
+          <div id="conn-status" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-300/40">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+            <span>ఆఫ్‌లైన్ మోడ్</span>
+          </div>
+
+          <!-- Dark Mode Toggle -->
+          <button id="theme-toggle" class="p-2 rounded-full border border-gold/20 hover:bg-gold/10 transition text-maroon dark:text-gold" title="థీమ్ మార్చండి">
+            <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+            <i class="fa-solid fa-sun text-lg hidden dark:block"></i>
+          </button>
+          
+          <!-- Language Toggle -->
+          <button id="lang-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold/30 hover:bg-gold/10 transition text-maroon dark:text-gold text-xs font-bold" title="భాష మార్చండి / Change Language">
+            <i class="fa-solid fa-language text-sm"></i>
+            <span id="lang-toggle-text">English</span>
+          </button>
+          
+          <!-- Settings Button -->
+          <button id="btn-settings" class="p-2 rounded-full border border-gold/20 hover:bg-gold/10 transition text-maroon dark:text-gold" title="సెట్టింగులు">
+            <i class="fa-solid fa-sliders text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+      
+      <!-- Tab Controls (Dashboard / Record Room) -->
+      <div class="flex justify-center mb-6 no-print">
+        <div class="bg-maroon/5 dark:bg-gray-800/50 p-1.5 rounded-full border border-gold/20 flex gap-2 w-full max-w-md">
+          <button id="tab-dashboard" class="flex-1 py-2.5 px-4 rounded-full text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-maroon text-white dark:bg-gold dark:text-maroon shadow-md">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span id="tab-dashboard-text">డ్యాష్‌బోర్డ్</span>
+          </button>
+          <button id="tab-record" class="flex-1 py-2.5 px-4 rounded-full text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 text-maroon-light dark:text-gray-300 hover:bg-gold/10">
+            <i class="fa-solid fa-microphone"></i>
+            <span id="tab-record-text">కానుక నమోదు</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="space-y-6">
+        <!-- Stat Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          
+          <!-- Stat Item 1 -->
+          <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-maroon dark:border-l-gold relative overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+            <div class="flex justify-between items-center">
+              <div>
+                <p id="stat-total-amount-lbl" class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">మొత్తం కానుకల కలెక్షన్ (Total Cash)</p>
+                <h3 id="stat-total-amount" class="text-3xl font-extrabold text-maroon dark:text-gold mt-1">₹0.00</h3>
+              </div>
+              <div class="w-12 h-12 rounded-full bg-gold/15 flex items-center justify-center text-gold">
+                <i class="fa-solid fa-indian-rupee-sign text-xl"></i>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-1">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span id="stat-total-amount-sub">మొత్తం సేకరించబడిన విలువ</span>
+            </div>
+          </div>
+
+          <!-- Stat Item 2 -->
+          <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-gold dark:border-l-maroon relative overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+            <div class="flex justify-between items-center">
+              <div>
+                <p id="stat-total-guests-lbl" class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">మొత్తం అతిథులు (Total Guests)</p>
+                <h3 id="stat-total-guests" class="text-3xl font-extrabold text-maroon dark:text-gold mt-1">0</h3>
+              </div>
+              <div class="w-12 h-12 rounded-full bg-maroon/10 dark:bg-gold/10 flex items-center justify-center text-maroon dark:text-gold">
+                <i class="fa-solid fa-users text-xl"></i>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-1">
+              <i class="fa-solid fa-address-book"></i>
+              <span id="stat-total-guests-sub">నమోదైన దాతల సంఖ్య</span>
+            </div>
+          </div>
+
+          <!-- Stat Item 3 -->
+          <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-emerald-600 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+            <div class="flex justify-between items-center">
+              <div>
+                <p id="stat-today-amount-lbl" class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">ఈ రోజు కలెక్షన్ (Today's Collection)</p>
+                <h3 id="stat-today-amount" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">₹0.00</h3>
+              </div>
+              <div class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <i class="fa-solid fa-calendar-day text-xl"></i>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-1">
+              <i class="fa-solid fa-chart-line"></i>
+              <span id="stat-today-guests">0 అతిథులు ఈ రోజు ఇచ్చారు</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Panel -->
+        <div class="glass-panel p-4 rounded-2xl space-y-3 no-print">
+          <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            
+            <!-- Search Inputs -->
+            <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="search-name" placeholder="అతిథి పేరుతో వెతకండి..." class="w-full pl-9 pr-4 py-2 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 focus:border-transparent text-maroon dark:text-gray-200">
+              </div>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                </span>
+                <input type="text" id="search-village" placeholder="గ్రామం పేరుతో వెతకండి..." class="w-full pl-9 pr-4 py-2 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 focus:border-transparent text-maroon dark:text-gray-200">
+              </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="flex items-center gap-2">
+              <label id="filter-date-lbl" for="filter-date" class="text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap uppercase">తేదీ:</label>
+              <input type="date" id="filter-date" class="border border-gold/30 rounded-xl px-3 py-2 text-sm bg-white/70 dark:bg-gray-900/60 text-maroon dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gold/60">
+              <button id="btn-reset-filters" class="px-3 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-semibold transition" title="ఫిల్టర్లు రీసెట్ చేయండి / Reset Filters">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entries Table Panel -->
+        <div class="glass-panel rounded-2xl overflow-hidden shadow-sm">
+          <div class="px-6 py-4 border-b border-gold/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-maroon/[0.02] dark:bg-gray-900/10">
+            <div>
+              <h4 class="text-lg font-bold text-maroon dark:text-gold flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i>
+                <span id="table-title">కానుకల జాబితా</span>
+              </h4>
+              <p id="table-subtitle" class="text-xs text-gray-500 dark:text-gray-400">నమోదైన అన్ని వివరాల పట్టిక</p>
+            </div>
+            
+            <!-- Export Actions -->
+            <div class="flex items-center gap-2 w-full sm:w-auto no-print">
+              <button id="btn-export-excel" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 border border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 text-xs font-bold rounded-xl transition">
+                <i class="fa-solid fa-file-excel text-sm"></i>
+                <span id="btn-export-excel-text">ఎక్సెల్ (Excel)</span>
+              </button>
+              <button id="btn-export-pdf" class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 border border-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 text-xs font-bold rounded-xl transition">
+                <i class="fa-solid fa-file-pdf text-sm"></i>
+                <span id="btn-export-pdf-text">పీడీఎఫ్ (PDF)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Responsive Table -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gold/10 dark:bg-gold/5 text-maroon dark:text-gold text-xs font-bold border-b border-gold/20 uppercase">
+                  <th class="py-3 px-4 text-center w-12" id="th-sno">క్ర. సంఖ్య</th>
+                  <th class="py-3 px-4" id="th-name">అతిథి పేరు</th>
+                  <th class="py-3 px-4" id="th-village">గ్రామం</th>
+                  <th class="py-3 px-4 text-right" id="th-amount">మొత్తం</th>
+                  <th class="py-3 px-4" id="th-phone">మొబైల్</th>
+                  <th class="py-3 px-4" id="th-voice">వాయిస్ రికార్డింగ్</th>
+                  <th class="py-3 px-4 text-center no-print" id="th-actions">చర్యలు</th>
+                </tr>
+              </thead>
+              <tbody id="entries-tbody" class="divide-y divide-gray-200/50 dark:divide-gray-800/50 text-sm">
+                <!-- Dynamic Rows Go Here -->
+                <tr>
+                  <td colspan="7" class="py-12 text-center text-gray-500 dark:text-gray-400 font-medium">
+                    <div class="flex flex-col items-center gap-2">
+                      <i class="fa-solid fa-database text-3xl text-gold/50"></i>
+                      <span>ఏ రికార్డులు లేవు. రికార్డ్ రూమ్‌కి వెళ్లి వాయిస్ ద్వారా కానుక నమోదు చేయండి!</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Table Summary Footer -->
+          <div id="table-summary-footer" class="hidden px-6 py-3 border-t border-gold/20 bg-gold/5 dark:bg-gold/2 text-right font-bold text-maroon dark:text-gold flex justify-between items-center">
+            <span id="filtered-total-lbl" class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">ఫిల్టర్ చేసిన మొత్తం:</span>
+            <span id="filtered-total-val" class="text-lg">₹0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- RECORDING VIEW (VOICE ROOM) -->
+      <section id="view-record" class="hidden max-w-2xl mx-auto space-y-6">
+        
+        <!-- Instruction Info Card -->
+        <div class="glass-panel p-4 rounded-2xl flex items-start gap-3 border border-gold/20 text-maroon-light dark:text-gray-300">
+          <div class="w-8 h-8 rounded-full bg-gold/15 flex items-center justify-center text-gold-dark flex-shrink-0 mt-0.5">
+            <i class="fa-solid fa-circle-info"></i>
+          </div>
+          <div>
+            <h5 id="info-title" class="text-sm font-bold text-maroon dark:text-gold">ఎలా రికార్డ్ చేయాలి (How to record)</h5>
+            <p id="info-desc" class="text-xs mt-0.5 leading-relaxed">
+              మైక్రోఫోన్ బటన్‌ను క్లిక్ చేసి, అతిథి వివరాలను తెలుగులో చెప్పండి.
+              <br>ఉదాహరణకు: <strong class="text-maroon dark:text-gold-light">"పోచంపల్లి రమేష్ వెయ్యి నూట పదహారు రూపాయలు ఇచ్చారు"</strong> లేదా <strong class="text-maroon dark:text-gold-light">"గ్రామం కరీంనగర్ రాజయ్య ఐదు వందల పదహారు రూపాయలు, మొబైల్ నంబర్ 9876543210"</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Recording Console -->
+        <div class="glass-panel p-8 rounded-3xl flex flex-col items-center justify-center space-y-6 text-center border-2 border-dashed border-gold/30">
+          <!-- Mic Container -->
+          <div class="relative">
+            <!-- Ripple ring animations -->
+            <div id="mic-ripple" class="absolute inset-0 rounded-full bg-maroon/20 dark:bg-gold/20 transition-all duration-300 hidden"></div>
+            
+            <button id="btn-record-mic" class="w-32 h-32 rounded-full bg-gradient-to-br from-maroon to-maroon-light dark:from-gold-dark dark:to-gold flex items-center justify-center shadow-2xl border border-gold/30 hover:scale-105 active:scale-95 transition-all duration-300 relative z-10 cursor-pointer">
+              <i id="mic-icon" class="fa-solid fa-microphone text-5xl text-gold dark:text-maroon"></i>
+            </button>
+          </div>
+
+          <!-- Status Indicators -->
+          <div>
+            <h3 id="record-status-title" class="text-lg font-bold text-maroon dark:text-gold">రికార్డ్ చేయడానికి బటన్ నొక్కండి</h3>
+            <p id="record-status-subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tap to speak Telugu wedding gifts</p>
+          </div>
+
+          <!-- Speech Visualizer -->
+          <div id="visualizer-container" class="hidden flex items-center gap-1 h-12 w-full max-w-xs justify-center">
+            <!-- Styled visualizer waves -->
+            <div class="visualizer-bar" style="height: 12px;"></div>
+            <div class="visualizer-bar" style="height: 24px;"></div>
+            <div class="visualizer-bar" style="height: 38px;"></div>
+            <div class="visualizer-bar" style="height: 20px;"></div>
+            <div class="visualizer-bar" style="height: 42px;"></div>
+            <div class="visualizer-bar" style="height: 16px;"></div>
+            <div class="visualizer-bar" style="height: 32px;"></div>
+            <div class="visualizer-bar" style="height: 24px;"></div>
+            <div class="visualizer-bar" style="height: 8px;"></div>
+          </div>
+
+          <!-- Realtime Speech-to-Text Transcript Output -->
+          <div id="transcript-container" class="w-full hidden">
+            <p id="transcript-header-lbl" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">తెలుగు వచనం (Telugu Transcript):</p>
+            <div class="p-4 rounded-xl bg-gold/5 dark:bg-gray-900/80 border border-gold/20 text-sm text-maroon dark:text-gray-200 min-h-[60px] max-h-[120px] overflow-y-auto italic shadow-inner" id="record-transcript">
+              ...మాట్లాడటం ప్రారంభించండి...
+            </div>
+          </div>
+          
+          <!-- Manual Entry Option -->
+          <button id="btn-show-manual" class="text-xs text-maroon/70 dark:text-gold/70 hover:underline hover:text-maroon dark:hover:text-gold transition font-semibold">
+            <i class="fa-solid fa-keyboard"></i> <span id="btn-show-manual-text">కీబోర్డ్ ద్వారా వివరాలు నమోదు చేయండి (Manual Input)</span>
+          </button>
+        </div>
+
+        <!-- MANUAL INPUT CARD (Hidden by default, toggled by manual button) -->
+        <div id="manual-input-card" class="hidden glass-panel p-6 rounded-2xl border border-gold/20 space-y-4">
+          <div class="flex justify-between items-center border-b border-gold/25 pb-2">
+            <h4 id="manual-header" class="font-bold text-maroon dark:text-gold">మ్యాన్యువల్ ఎంట్రీ (Manual Text)</h4>
+            <button id="btn-close-manual" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label id="manual-label" for="manual-text" class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">వాక్యం టైప్ చేయండి (Type spoken sentence):</label>
+              <textarea id="manual-text" rows="2" placeholder="ఉదా: పోచంపల్లి రమేష్ వెయ్యి రూపాయలు ఇచ్చారు" class="w-full p-3 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 text-maroon dark:text-gray-200"></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button id="btn-process-manual" class="px-5 py-2.5 bg-maroon dark:bg-gold text-white dark:text-maroon rounded-xl text-xs font-bold hover:shadow-md transition">
+                వివరాలు సేకరించు (Parse Info)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIRMATION / EXTRACTION DRAWER MODAL -->
+      <section id="extraction-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gold/40 animate-in fade-in zoom-in duration-300">
+          
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-maroon to-maroon-light dark:from-gold-dark dark:to-gold py-4 px-6 text-white dark:text-maroon flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-xl"></i>
+              <h3 id="conf-modal-title" class="font-extrabold tracking-wide">వివరాల నిర్ధారణ (Confirmation)</h3>
+            </div>
+            <button id="btn-cancel-confirm" class="text-white/80 hover:text-white dark:text-maroon/80 dark:hover:text-maroon transition">
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+
+          <!-- Form Fields -->
+          <form id="confirmation-form" class="p-6 space-y-4">
+            
+            <!-- Guest Name -->
+            <div>
+              <label id="conf-lbl-name" for="conf-name" class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">అతిథి పేరు (Guest Name) *</label>
+              <input type="text" id="conf-name" required class="w-full px-4 py-2.5 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 text-maroon dark:text-gray-200 font-medium">
+            </div>
+
+            <!-- Village -->
+            <div>
+              <label id="conf-lbl-village" for="conf-village" class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">గ్రామం (Village) *</label>
+              <input type="text" id="conf-village" required class="w-full px-4 py-2.5 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 text-maroon dark:text-gray-200 font-medium">
+            </div>
+
+            <!-- Amount -->
+            <div>
+              <label id="conf-lbl-amount" for="conf-amount" class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">కానుక మొత్తం (Amount ₹) *</label>
+              <input type="number" id="conf-amount" required min="1" class="w-full px-4 py-2.5 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 text-maroon dark:text-gray-200 font-bold text-lg">
+            </div>
+
+            <!-- Mobile Phone -->
+            <div>
+              <label id="conf-lbl-phone" for="conf-phone" class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">మొబైల్ సంఖ్య (Phone Number)</label>
+              <input type="tel" id="conf-phone" placeholder="ఉదా: 9876543210" pattern="[0-9]{10}" class="w-full px-4 py-2.5 border border-gold/30 rounded-xl bg-white/70 dark:bg-gray-900/60 text-sm focus:outline-none focus:ring-2 focus:ring-gold/60 text-maroon dark:text-gray-200">
+            </div>
+
+            <!-- Audio Playback Preview -->
+            <div id="conf-audio-container" class="hidden p-3 bg-gold/5 dark:bg-gray-900/40 rounded-xl border border-gold/20 flex items-center justify-between">
+              <span id="conf-lbl-audio" class="text-xs text-gray-500 dark:text-gray-400 font-medium">రికార్డెడ్ వాయిస్:</span>
+              <audio id="conf-audio-player" controls class="h-8 max-w-[200px]"></audio>
+            </div>
+
+            <!-- Verification readback checkbox -->
+            <div class="flex items-center gap-2">
+              <input type="checkbox" id="readback-enabled" checked class="w-4 h-4 text-maroon focus:ring-maroon border-gray-300 rounded">
+              <label id="conf-lbl-readback" for="readback-enabled" class="text-xs text-gray-600 dark:text-gray-400">సేవ్ చేసినప్పుడు వివరాలను వాయిస్ చదివి వినిపించు (Audio Readback)</label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-2">
+              <button type="button" id="btn-discard-confirm" class="flex-1 py-2.5 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs transition uppercase">
+                రద్దు చేయి (Discard)
+              </button>
+              <button type="submit" id="btn-save-confirm" class="flex-1 py-2.5 bg-maroon hover:bg-maroon-light dark:bg-gold dark:hover:bg-gold-light text-white dark:text-maroon font-bold rounded-xl text-xs shadow-md transition uppercase">
+                సేవ్ చేయి (Save Entry)
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </section>
+
+      <!-- SETTINGS DRAWER / OVERLAY -->
+      <section id="settings-overlay" class="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl border-l border-gold/30 z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col no-print">
+        
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gold/20 flex justify-between items-center bg-maroon/5 dark:bg-gray-900/50">
+          <div>
+            <h3 class="text-lg font-bold text-maroon dark:text-gold flex items-center gap-2">
+              <i class="fa-solid fa-sliders"></i>
+              <span>అప్లికేషన్ సెట్టింగులు</span>
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Configure connection settings</p>
+          </div>
+          <button id="btn-close-settings" class="text-gray-500 hover:text-maroon dark:hover:text-gold">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Form Body -->
+        <div class="p-6 flex-grow overflow-y-auto space-y-6">
+          
+          <!-- Operator Settings -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold text-gold uppercase tracking-wider">ఆపరేటర్ వివరాలు (Operator Info)</h4>
+            <div>
+              <label for="settings-operator" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">ఆపరేటర్ పేరు (Volunteer/Operator Name):</label>
+              <input type="text" id="settings-operator" class="w-full px-3 py-2 border border-gold/30 rounded-xl bg-white dark:bg-gray-800 text-sm text-maroon dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-gold">
+            </div>
+          </div>
+
+          <!-- Supabase Credentials -->
+          <div class="space-y-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+            <div class="flex justify-between items-center">
+              <h4 class="text-xs font-bold text-gold uppercase tracking-wider">Supabase కనెక్షన్</h4>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="settings-use-supabase" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-maroon dark:peer-checked:bg-gold"></div>
+              </label>
+            </div>
+            
+            <div id="supabase-config-fields" class="space-y-3 opacity-60 pointer-events-none transition-all duration-300">
+              <div>
+                <label for="settings-url" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Supabase URL:</label>
+                <input type="url" id="settings-url" placeholder="https://xxx.supabase.co" class="w-full px-3 py-2 border border-gold/30 rounded-xl bg-white dark:bg-gray-800 text-sm text-maroon dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-gold">
+              </div>
+              <div>
+                <label for="settings-key" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Supabase Anon Key:</label>
+                <input type="password" id="settings-key" placeholder="eyJhbG..." class="w-full px-3 py-2 border border-gold/30 rounded-xl bg-white dark:bg-gray-800 text-sm text-maroon dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-gold">
+              </div>
+              
+              <!-- Setup SQL Box -->
+              <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
+                <h5 class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase flex items-center justify-between mb-1">
+                  <span>Supabase SQL స్కీమా (Copy Schema)</span>
+                  <button type="button" id="btn-copy-sql" class="text-gold hover:underline"><i class="fa-solid fa-copy"></i> కాపీ</button>
+                </h5>
+                <pre class="text-[9px] text-gray-500 dark:text-gray-400 font-mono overflow-x-auto p-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded">
+CREATE TABLE gift_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    guest_name TEXT NOT NULL,
+    village TEXT NOT NULL,
+    amount NUMERIC(10,2) NOT NULL,
+    phone TEXT,
+    notes TEXT,
+    audio_url TEXT,
+    operator_name TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);</pre>
+                <p class="text-[9px] text-amber-600 dark:text-amber-400 mt-1">గమనిక: "wedding-audio" అనే స్టోరేజ్ బకెట్‌ను కూడా పబ్లిక్‌గా క్రియేట్ చేయాలి.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Whisper and GPT Settings -->
+          <div class="space-y-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+            <h4 class="text-xs font-bold text-gold uppercase tracking-wider">AI API సెట్టింగులు (ঐచ్ఛికం)</h4>
+            <div>
+              <label for="settings-openai-key" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">OpenAI API Key (Whisper/GPT-4o):</label>
+              <input type="password" id="settings-openai-key" placeholder="sk-..." class="w-full px-3 py-2 border border-gold/30 rounded-xl bg-white dark:bg-gray-800 text-sm text-maroon dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-gold">
+              <p class="text-[10px] text-gray-400 mt-1">కీ జోడిస్తే మెరుగైన ఆక్యురేసీతో తెలుగును ట్రాన్స్‌క్రైబ్ చేస్తుంది. లేదంటే బ్రౌజర్ స్పీచ్ API వాడుతుంది (ఉచితం).</p>
+            </div>
+          </div>
+
+          <!-- Local storage controls -->
+          <div class="space-y-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+            <h4 class="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">డేటా క్లియర్</h4>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-500 dark:text-gray-400">ఆఫ్‌లైన్ లోకల్ డేటాను పూర్తిగా తుడిచివేయండి:</span>
+              <button id="btn-clear-local" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-trash-can"></i> డెలిట్ చెయ్
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-gold/20 bg-gray-50 dark:bg-gray-900/80 flex gap-2">
+          <button id="btn-save-settings" class="w-full py-2.5 bg-maroon dark:bg-gold hover:shadow-md text-white dark:text-maroon rounded-xl text-xs font-bold transition">
+            సెట్టింగ్స్ సేవ్ చేయి (Save Settings)
+          </button>
+        </div>
+      </section>
+
+      <!-- PRINT-FRIENDLY RECEIPT VIEW (Hidden, only visible in browser print preview) -->
+      <section id="print-receipt" class="hidden print-only p-8 text-black max-w-sm mx-auto border border-black rounded bg-white">
+        <div class="text-center space-y-2 pb-4 border-b border-dashed border-gray-400">
+          <h2 class="text-lg font-bold">శ్రీరస్తు శుభమస్తు</h2>
+          <h3 class="text-md font-bold">పెళ్ళి కానుక రసీదు</h3>
+          <p class="text-xs" id="print-receipt-date">తేదీ: --/--/----</p>
+        </div>
+        <div class="py-4 space-y-2 text-sm">
+          <div class="flex justify-between"><span>అతిథి పేరు:</span> <span id="print-receipt-name" class="font-bold">--</span></div>
+          <div class="flex justify-between"><span>గ్రామం:</span> <span id="print-receipt-village">--</span></div>
+          <div class="flex justify-between"><span>కానుక మొత్తం:</span> <span id="print-receipt-amount" class="font-bold text-base">₹0.00</span></div>
+          <div class="flex justify-between"><span>మొబైల్:</span> <span id="print-receipt-phone">--</span></div>
+          <div class="flex justify-between"><span>ఆపరేటర్:</span> <span id="print-receipt-operator">--</span></div>
+        </div>
+        <div class="pt-4 border-t border-dashed border-gray-400 text-center text-xs">
+          <p class="font-bold">ధన్యవాదాలు - వధూవరులు</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- App Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Footer Copyright -->
+    <footer class="border-t border-gold/20 py-4 text-center text-xs text-maroon-light/60 dark:text-gray-500 no-print">
+      <div class="max-w-7xl mx-auto px-4">
+        <p id="footer-copy">© 2026 పెళ్ళి కానుక వాయిస్ మేనేజ్మెంట్ సిస్టమ్. All Rights Reserved.</p>
+        <p id="footer-dev" class="mt-1">తయారు చేసినది: ఆటోమేటిక్ వాయిస్ రికార్డర్ & AI వివరాల గుర్తింపు</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="parser.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
